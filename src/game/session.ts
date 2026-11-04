@@ -179,7 +179,10 @@ export class PlaySession {
     if (this.clickIdx < 0) this.clickIdx = this.clickTimes.length;
     this.judge.reset(this.tl.toSec(fromBeat) / this.speed - 0.001);
     this.judge.skipBefore(this.tl.toSec(fromBeat) / this.speed);
-    if (this.mode !== 'listen') this.attachMic();
+    if (this.mode !== 'listen') {
+      mic.applySettings();
+      this.attachMic();
+    }
     this.startAudio(fromBeat);
     this.lastTick = performance.now();
     this.emitState();

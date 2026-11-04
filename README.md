@@ -19,7 +19,7 @@ Entwickeln: `npm install` · `npm run dev` · Tests: `npm test` · Produktions-B
 | **Play (Wasserfall)** | 6 Saiten-Lanes mit Bundzahlen, Akkord-Balken mit Namen, Anschlagrichtung ↓↑, Hammer-on/Pull-off-Markierung, Treffer-Feedback (Perfect/Good/OK/Wrong/Miss), Combo & Multiplikator, Score, Sterne, Timing-Histogramm („du bist 30 ms zu spät“), Problemtakte mit Ein-Klick-Loop |
 | **Modi** | Real-time · *Wait for me* (stoppt bis du richtig spielst) · *Watch & listen* · Tempo 40–125 % · Loop-Abschnitte · Count-in · Metronom |
 | **Begleitung** | Synthetisierte Backing-Band (Drums, Bass, Pad je nach Stil/Takt) und Referenz-Gitarre – direkt aus den Akkorden des Songs erzeugt |
-| **Songs** | 80+ Stücke: Melodien (gemeinfrei), Akkord-Songs, Fingerpicking-/Travis-Arrangements, Blues-/Rock-/Folk-Progressionen, Technik-Übungen. Pro Stück bis zu drei Spuren: Melody · Chords (Strumming) · Picking |
+| **Songs** | 78 Stücke (157 spielbare Spuren): Melodien (gemeinfrei), Akkord-Songs, Fingerpicking-/Travis-Arrangements, Blues-/Rock-/Folk-Progressionen, Technik-Übungen. Pro Stück bis zu drei Spuren: Melody · Chords (Strumming) · Picking |
 | **Jam builder** | Beliebige Tonart + Akkordfolge in römischen Ziffern (z. B. `I V vi IV`) → Song mit Strumming, Picking und Backing |
 | **Learn** | Mittelstufen-Kurs: 31 Lektionen in 6 Modulen (Barré, Rhythmik, Fingerstyle, Skalen/Lead, Songcraft) mit messbaren Zielen |
 | **Chords** | Akkordbibliothek (alle Grundtöne × 14 Qualitäten), Mikrofon-Check **pro Saite**, Akkord-Trainer, Wechsel-Drills |

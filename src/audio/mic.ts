@@ -1,6 +1,7 @@
 import { Analyzer, type AnalysisFrame } from './analyzer';
 import { getCtx } from './engine';
 import { getSettings, subscribeSettings } from '../core/settings';
+import { STRICTNESS } from '../game/judge';
 
 export type MicState = 'off' | 'starting' | 'on' | 'error';
 type FrameCb = (f: AnalysisFrame, an: Analyzer) => void;
@@ -54,6 +55,8 @@ class MicInput {
       this.analyzer.cfg.a4 = s.a4;
       this.analyzer.cfg.minGate = s.micGate;
       this.analyzer.cfg.onsetSens = s.sensitivity;
+      this.analyzer.cfg.centsTol = s.pitchTolerance;
+      this.analyzer.cfg.presence = s.presenceOverride || STRICTNESS[s.strictness].presence;
     }
   }
 

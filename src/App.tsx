@@ -25,6 +25,7 @@ const Recorder = lazy(() => import('./pages/Recorder').then((m) => ({ default: m
 const ImportPage = lazy(() => import('./pages/ImportPage').then((m) => ({ default: m.ImportPage })));
 const Editor = lazy(() => import('./pages/Editor').then((m) => ({ default: m.Editor })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
+const Help = lazy(() => import('./pages/Help').then((m) => ({ default: m.Help })));
 const Setup = lazy(() => import('./pages/Setup').then((m) => ({ default: m.Setup })));
 
 const NAV: { group: string; items: { to: string; label: string; icon: string; match: string }[] }[] = [
@@ -53,13 +54,14 @@ const NAV: { group: string; items: { to: string; label: string; icon: string; ma
       { to: '/stats', label: 'Progress', icon: 'stats', match: 'stats' },
       { to: '/import', label: 'Import & Create', icon: 'import', match: 'import' },
       { to: '/settings', label: 'Settings', icon: 'settings', match: 'settings' },
+      { to: '/help', label: 'Help', icon: 'info', match: 'help' },
     ],
   },
 ];
 
 const TITLES: Record<string, string> = {
   '': 'Home', library: 'Songs', song: 'Song', learn: 'Learn', chords: 'Chords', fretboard: 'Fretboard', ear: 'Ear Training', tuner: 'Tuner',
-  metronome: 'Metronome', recorder: 'Recorder', stats: 'Progress', import: 'Import & Create', editor: 'Editor', settings: 'Settings', setup: 'Setup',
+  metronome: 'Metronome', recorder: 'Recorder', stats: 'Progress', import: 'Import & Create', editor: 'Editor', settings: 'Settings', setup: 'Setup', help: 'Help',
 };
 
 // routes where the microphone is in use: no ambient music there
@@ -127,6 +129,8 @@ export function App() {
         return <SettingsPage />;
       case 'setup':
         return <Setup />;
+      case 'help':
+        return <Help />;
       default:
         return (
           <div className="page">

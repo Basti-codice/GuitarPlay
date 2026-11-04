@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { noteName } from '../core/music';
 import { MicGate, Meter, PageHead, Seg, Setting, Slider, Toggle, useMicLevel, useMicState } from '../ui/kit';
 import { DEFAULT_SETTINGS, updateSettings, useSettings } from '../core/settings';
 import { mic } from '../audio/mic';
@@ -71,6 +72,8 @@ export function SettingsPage() {
         </div>
       </div>
 
+      <Diagnostics />
+
       <div className="card">
         <h2>Judging</h2>
         <Setting label="Strictness" desc="Timing window and how complete a chord has to be.">
@@ -84,6 +87,12 @@ export function SettingsPage() {
         </Setting>
         <Setting label={`Latency compensation ${s.latencyMs} ms`} desc="If notes are judged consistently early or late, adjust this – or measure it in the wizard.">
           <Slider value={s.latencyMs} min={-120} max={400} step={5} onChange={(v) => updateSettings({ latencyMs: v })} width={200} />
+        </Setting>
+        <Setting label={`Pitch tolerance ±${s.pitchTolerance} cents`} desc="How far out of tune a string may be and still count. Lower = stricter, but needs a well-tuned guitar.">
+          <Slider value={s.pitchTolerance} min={25} max={48} step={1} onChange={(v) => updateSettings({ pitchTolerance: v })} width={200} />
+        </Setting>
+        <Setting label={s.presenceOverride ? `Note threshold ${s.presenceOverride.toFixed(2)}` : 'Note threshold: automatic'} desc="How clearly a note must be heard. Raise if wrong notes are accepted; lower if correct notes are missed. 0 = follow the strictness setting.">
+          <Slider value={s.presenceOverride} min={0} max={0.7} step={0.02} onChange={(v) => updateSettings({ presenceOverride: v < 0.2 ? 0 : v })} width={200} />
         </Setting>
         <Setting label="Count-in" desc="One bar of clicks before the song starts.">
           <Toggle on={s.countIn} onChange={(v) => updateSettings({ countIn: v })} label="Count-in" />
@@ -164,6 +173,53 @@ export function SettingsPage() {
       </div>
       <div className="small faint center">GuitarPlay 1.0 · Audio is analysed locally and never uploaded.</div>
       <MicGateHidden />
+    </div>
+  );
+}
+
+function Diagnostics() {
+  const m = useMicState();
+  const [d, setD] = useState({ rms: 0, noise: 0, gate: 0, pitch: '', clarity: 0, onsetAt: 0 });
+  useEffect(() => {
+    if (m.state !== 'on') return;
+    let last = 0;
+    const off = mic.onFrame((f, an) => {
+      const now = performance.now();
+      if (f.onset) setD((x) => ({ ...x, onsetAt: now }));
+      if (now - last < 60) return;
+      last = now;
+      setD((x) => ({ ...x, rms: f.rms, noise: an.noise, gate: an.gateLevel, pitch: f.pitch ? noteName(f.pitch.midi) : '', clarity: f.pitch?.clarity ?? 0 }));
+    });
+    return () => off();
+  }, [m.state]);
+  const flash = performance.now() - d.onsetAt < 180;
+  const scale = (v: number) => Math.min(1, Math.sqrt(v) * 2.2);
+  return (
+    <div className="card">
+      <h2>Live detection monitor</h2>
+      <p>Play a few notes: the level should clearly rise above the gate marker, the attack light should flash once per note and the pitch should match what you play.</p>
+      {m.state !== 'on' ? <p className="muted">Enable the microphone to see live values.</p> : (
+        <div className="grid c2" style={{ marginTop: 8 }}>
+          <div>
+            <div className="small muted">Level (white line = noise gate)</div>
+            <div style={{ position: 'relative', marginTop: 6 }}>
+              <Meter value={scale(d.rms)} />
+              <div style={{ position: 'absolute', left: `${scale(d.gate) * 100}%`, top: -3, bottom: -3, width: 2, background: '#fff' }} />
+            </div>
+            <div className="tiny faint" style={{ marginTop: 6 }}>room noise ≈ {(d.noise * 1000).toFixed(1)}</div>
+          </div>
+          <div className="row" style={{ gap: 18 }}>
+            <div className="center" style={{ width: 72 }}>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', margin: '0 auto', background: flash ? 'var(--accent)' : 'var(--card3)', boxShadow: flash ? '0 0 18px var(--accent)' : 'none' }} />
+              <div className="tiny faint" style={{ marginTop: 4 }}>attack</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 30, fontWeight: 800, minHeight: 36 }}>{d.pitch || '–'}</div>
+              <div className="tiny faint">pitch · confidence {Math.round(d.clarity * 100)}%</div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -30,6 +30,10 @@ export interface Settings {
   micGate: number;
   /** onset detection sensitivity multiplier */
   sensitivity: number;
+  /** cents tolerance when matching partials of expected notes */
+  pitchTolerance: number;
+  /** override of the per-strictness presence threshold (0 = use strictness) */
+  presenceOverride: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -59,6 +63,8 @@ export const DEFAULT_SETTINGS: Settings = {
   headphonesNoticeSeen: false,
   micGate: 0.0025,
   sensitivity: 1.3,
+  pitchTolerance: 45,
+  presenceOverride: 0,
 };
 
 const KEY = 'guitarplay.settings.v1';
