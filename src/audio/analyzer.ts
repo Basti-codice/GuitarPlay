@@ -46,7 +46,7 @@ export const DEFAULT_ANALYZER: AnalyzerConfig = {
   minGate: 0.0025,
   presence: 0.42,
   centsTol: 45,
-  onsetSens: 1,
+  onsetSens: 1.3,
   a4: 440,
 };
 
@@ -214,7 +214,8 @@ export class Analyzer {
       if (cand > thr && cand >= this.fluxPrev2 && cand >= flux) {
         const tc = t - HOP / this.fs;
         const sinceOn = tc - this.lastOnsetT;
-        const strongEnough = sinceOn > 0.3 || cand > this.lastOnsetFlux * 0.5;
+        // suppress ringing build-up right after an attack, but let real new attacks through
+        const strongEnough = cand > this.lastOnsetFlux * 0.5 * Math.exp(-Math.max(0, sinceOn - 0.1) / 0.06);
         if (sinceOn > 0.1 && strongEnough && rms > this.gateLevel * 0.8) {
           onset = true;
           this.lastOnsetT = tc;
@@ -310,14 +311,14 @@ export class Analyzer {
   }
 
   /** Evaluate whether all targets are currently audible. */
-  evaluate(targets: number[]): Evaluation {
+  evaluate(targets: number[], recent?: Set<number>): Evaluation {
     const scores: number[] = [];
     const present: boolean[] = [];
     const set = new Set(targets.map((m) => Math.round(m)));
     for (const m of targets) {
       let s = this.noteScore(m);
       // sub-octave penalty: an octave-lower note makes ours look present via shared harmonics
-      if (s > 0 && !set.has(Math.round(m) - 12) && m - 12 >= 28) {
+      if (s > 0 && !set.has(Math.round(m) - 12) && !recent?.has(Math.round(m) - 12) && m - 12 >= 28) {
         const f = midiToFreq(m - 12, this.cfg.a4);
         const sub = this.peakScore(this.magL, this.fs / LONG, f);
         if (sub > 0.85) s *= 0.3;
@@ -326,9 +327,8 @@ export class Analyzer {
     }
     if (targets.length === 1 && this.lastPitch && this.lastPitch.clarity >= 0.85) {
       const d = this.lastPitch.midi - targets[0];
+      // MPM is only trusted to *confirm* (it can mislead when several strings ring together)
       if (Math.abs(d) < 0.55) scores[0] = Math.max(scores[0], 0.9);
-      else if (Math.abs(Math.round(d)) % 12 !== 0) scores[0] *= 0.25;
-      else if (d < 0 && this.lastPitch.clarity >= 0.9) scores[0] *= 0.25; // clearly an octave below the target
     }
     let c = 0;
     for (const s of scores) {

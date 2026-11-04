@@ -173,7 +173,7 @@ export class Judge {
       // 2. presence check
       const armed = t.legato ? songNow >= t.time - w : s.onsetT != null;
       if (armed && frame.gate) {
-        const ev = an.evaluate(t.midis);
+        const ev = an.evaluate(t.midis, this.recentSet(i));
         const fresh = an.specSerial !== s.lastSerial;
         s.lastSerial = an.specSerial;
         if (fresh) s.stable = ev.count >= this.need(t) ? s.stable + 1 : 0;
@@ -181,7 +181,7 @@ export class Judge {
           s.best = ev.frac;
           s.bestHeard = ev.present;
         }
-        if (ev.count >= this.need(t) && s.stable >= 3) {
+        if (ev.count >= this.need(t) && s.stable >= (t.midis.length === 1 ? 5 : 3)) {
           const dt = t.legato ? 0 : (s.onsetT as number) - t.time;
           const ad = Math.abs(dt);
           let grade: Grade;
@@ -207,6 +207,18 @@ export class Judge {
     }
     // drop old onsets
     while (this.onsets.length && this.onsets[0].t < songNow - 1.5) this.onsets.shift();
+  }
+
+  /** pitches that were expected shortly before target i (their octave-up partials may legitimately ring) */
+  private recentSet(i: number): Set<number> {
+    const set = new Set<number>();
+    const t = this.states[i].t.time;
+    for (let k = i - 1; k >= 0 && k >= i - 12; k--) {
+      const o = this.states[k].t;
+      if (t - o.time > 3) break;
+      for (const m of o.midis) set.add(Math.round(m));
+    }
+    return set;
   }
 
   /** Expire events even when no audio frames arrive (e.g. mic stalled). */

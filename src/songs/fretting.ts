@@ -4,6 +4,7 @@ export interface FretOpts {
   tuning: number[];
   capo?: number;
   maxFret?: number;
+  minFret?: number;
 }
 
 interface Cand {
@@ -15,9 +16,10 @@ function candidates(midi: number, o: FretOpts): Cand[] {
   const out: Cand[] = [];
   const capo = o.capo ?? 0;
   const maxF = o.maxFret ?? 15;
+  const minF = o.minFret ?? 0;
   for (let s = 0; s < o.tuning.length; s++) {
     const f = midi - o.tuning[s] - capo;
-    if (f >= 0 && f <= maxF) out.push({ string: s, fret: f });
+    if (f >= minF && f <= maxF) out.push({ string: s, fret: f });
   }
   return out;
 }

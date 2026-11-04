@@ -1,0 +1,34 @@
+// End-to-end smoke test: plays a song with the in-app virtual guitar through the real audio worklet pipeline.
+const { chromium } = require('playwright');
+const URL = process.env.URL || 'http://127.0.0.1:5173';
+const shots = process.env.SHOTS || '/tmp/shots';
+require('fs').mkdirSync(shots, { recursive: true });
+(async () => {
+  const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required', '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'] });
+  const ctx = await browser.newContext({ viewport: { width: 1360, height: 820 }, deviceScaleFactor: 1 });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
+  page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
+  await page.goto(URL + '/#/');
+  await page.waitForSelector('.hero');
+  await page.screenshot({ path: shots + '/home.png' });
+  await page.goto(URL + '/#/library');
+  await page.waitForSelector('#song-grid');
+  await page.screenshot({ path: shots + '/library.png' });
+  const song = process.env.SONG || 'twinkle-twinkle-little-star';
+  await page.goto(URL + `/#/song/${song}`);
+  await page.waitForSelector('#start-btn');
+  await page.screenshot({ path: shots + '/song.png' });
+  await page.goto(URL + `/#/play/${song}?track=${process.env.TRACK || 'melody'}&speed=${process.env.SPEED || '1'}&mode=${process.env.MODE || 'realtime'}&sim=1&err=${process.env.ERR || '0.1'}`);
+  await page.waitForSelector('#begin');
+  await page.screenshot({ path: shots + '/play-ready.png' });
+  await page.click('#begin');
+  await page.waitForTimeout(9000);
+  await page.screenshot({ path: shots + '/play-mid.png' });
+  await page.waitForSelector('#result-acc', { timeout: Number(process.env.TIMEOUT || 120000) });
+  await page.screenshot({ path: shots + '/play-result.png' });
+  console.log('accuracy:', await page.textContent('#result-acc'));
+  console.log('errors:', JSON.stringify(errors, null, 1));
+  await browser.close();
+})().catch((e) => { console.error(e); process.exit(1); });
