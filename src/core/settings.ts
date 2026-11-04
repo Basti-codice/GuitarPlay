@@ -28,6 +28,8 @@ export interface Settings {
   onboarded: boolean;
   headphonesNoticeSeen: boolean;
   micGate: number;
+  /** onset detection sensitivity multiplier */
+  sensitivity: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -56,6 +58,7 @@ export const DEFAULT_SETTINGS: Settings = {
   onboarded: false,
   headphonesNoticeSeen: false,
   micGate: 0.0025,
+  sensitivity: 1.3,
 };
 
 const KEY = 'guitarplay.settings.v1';

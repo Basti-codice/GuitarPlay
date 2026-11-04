@@ -40,11 +40,11 @@ class MicInput {
   }
   subscribeState(fn: () => void) {
     this.stateListeners.add(fn);
-    return () => this.stateListeners.delete(fn);
+    return () => void this.stateListeners.delete(fn);
   }
   onFrame(cb: FrameCb) {
     this.listeners.add(cb);
-    return () => this.listeners.delete(cb);
+    return () => void this.listeners.delete(cb);
   }
 
   applySettings() {
@@ -53,6 +53,7 @@ class MicInput {
       this.analyzer.cfg.gain = s.inputGain;
       this.analyzer.cfg.a4 = s.a4;
       this.analyzer.cfg.minGate = s.micGate;
+      this.analyzer.cfg.onsetSens = s.sensitivity;
     }
   }
 

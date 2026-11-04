@@ -208,7 +208,7 @@ export function Fretboard({
   leftHanded?: boolean;
   capo?: number;
 }) {
-  const padL = 34,
+  const padL = 50,
     padR = 12,
     padT = 14,
     padB = 26;
@@ -229,7 +229,7 @@ export function Fretboard({
       {rows.map((s, r) => (
         <g key={s}>
           <line x1={padL} x2={width - padR} y1={padT + r * sh} y2={padT + r * sh} stroke={STRING_COLORS[s]} strokeOpacity={0.75} strokeWidth={1 + (5 - s) * 0.35} />
-          <text x={padL - 12} y={padT + r * sh + 4} fontSize={12} fontWeight={800} fill={STRING_COLORS[s]} textAnchor="middle">
+          <text x={14} y={padT + r * sh + 4} fontSize={12} fontWeight={800} fill={STRING_COLORS[s]} textAnchor="middle">
             {labels[s]}
           </text>
         </g>
@@ -243,7 +243,7 @@ export function Fretboard({
         Array.from({ length: frets + 1 }).map((_, f) => {
           const key = `${s}:${f}`;
           const m = marks?.get(key);
-          const cx = f === 0 ? fx(0) + (leftHanded ? 14 : -14) : (fx(f) + fx(f - 1)) / 2;
+          const cx = f === 0 ? fx(0) + (leftHanded ? 16 : -16) : (fx(f) + fx(f - 1)) / 2;
           const cy = padT + r * sh;
           return (
             <g key={key} onClick={() => onClick?.(s, f)} style={{ cursor: onClick ? 'pointer' : 'default' }}>

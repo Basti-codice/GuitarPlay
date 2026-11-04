@@ -39,6 +39,8 @@ export interface AnalyzerConfig {
   /** Onset threshold multiplier. */
   onsetSens: number;
   a4: number;
+  /** lowest fundamental the pitch tracker looks for (Hz) */
+  minFreq: number;
 }
 
 export const DEFAULT_ANALYZER: AnalyzerConfig = {
@@ -48,6 +50,7 @@ export const DEFAULT_ANALYZER: AnalyzerConfig = {
   centsTol: 45,
   onsetSens: 1.3,
   a4: 440,
+  minFreq: 55,
 };
 
 /** Median offset between a true attack and the detected onset in ctx time. Calibrated by tests. */
@@ -237,7 +240,7 @@ export class Analyzer {
         this.specValid = true;
         this.specSerial++;
         this.copyLast(2048, this.pitchBuf);
-        const p = this.mpm.detect(this.pitchBuf);
+        const p = this.mpm.detect(this.pitchBuf, this.cfg.minFreq);
         if (p && p.clarity >= 0.75) {
           this.lastPitch = { freq: p.freq, midi: freqToMidi(p.freq, this.cfg.a4), clarity: p.clarity };
         } else this.lastPitch = null;

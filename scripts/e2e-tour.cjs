@@ -1,0 +1,58 @@
+// Visits every page, checks for runtime errors and takes screenshots.
+const { chromium } = require('playwright');
+const URL = process.env.URL || 'http://127.0.0.1:4173';
+const shots = process.env.SHOTS || '/tmp/tour';
+require('fs').mkdirSync(shots, { recursive: true });
+(async () => {
+  const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required', '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'] });
+  const ctx = await browser.newContext({ viewport: { width: 1360, height: 820 }, permissions: ['microphone'] });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
+  page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
+  const go = async (route, name, wait = 700) => {
+    await page.goto(URL + '/#' + route);
+    await page.waitForTimeout(wait);
+    await page.screenshot({ path: `${shots}/${name}.png` });
+    console.log('ok', route);
+  };
+  await go('/', 'home');
+  await go('/library', 'library');
+  await page.fill('input[type=search]', 'blues');
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: `${shots}/library-search.png` });
+  await go('/learn', 'learn');
+  await go('/learn/m2-barre-f', 'lesson');
+  await go('/chords', 'chords');
+  await page.click('text=Hear it');
+  await go('/fretboard', 'fretboard');
+  await go('/ear', 'ear');
+  await page.click('#ear-start');
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: `${shots}/ear-q.png` });
+  await go('/metronome', 'metronome');
+  await page.click('#met-toggle');
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: `${shots}/metronome-on.png` });
+  await page.click('#met-toggle');
+  await go('/stats', 'stats');
+  await go('/recorder', 'recorder');
+  await go('/import', 'import');
+  await go('/editor', 'editor');
+  await page.click('td[data-c="0"][data-s="5"]');
+  await page.keyboard.type('3');
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.type('12');
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: `${shots}/editor-typed.png` });
+  await go('/settings', 'settings');
+  await go('/setup', 'setup');
+  // tuner with the fake mic device (beeps)
+  await go('/tuner', 'tuner-before');
+  await page.click('text=Enable microphone').catch(() => {});
+  await page.waitForTimeout(2500);
+  await page.screenshot({ path: `${shots}/tuner-mic.png` });
+  console.log('tuner note:', await page.textContent('#tuner-note').catch(() => '?'));
+  console.log('errors:', JSON.stringify(errors, null, 1));
+  await browser.close();
+})().catch((e) => { console.error(e); process.exit(1); });

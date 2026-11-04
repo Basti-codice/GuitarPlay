@@ -263,7 +263,7 @@ export class PlaySession {
     }
     if (this.state === 'playing' && !this.holding) this.playedSeconds += dt;
     const p = this.playTime();
-    this.judge.tick(p - this.offLatency);
+    if (this.mode !== 'listen') this.judge.tick(p - this.offLatency);
     // loop
     if (this.loop && this.songBeat() >= this.loop.endBeat) {
       void this.restartAt(this.loop.startBeat);

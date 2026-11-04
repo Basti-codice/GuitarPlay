@@ -7,7 +7,8 @@ import { getSettings, updateSettings, useSettings } from '../core/settings';
 import { PlaySession, defaultTrack, type PlayMode } from '../game/session';
 import { Waterfall } from '../game/waterfall';
 import { multiplier, starsFor } from '../game/judge';
-import { addPractice, recordSession } from '../core/progress';
+import { addPractice, recordSession, setCounterMax, setLesson, getProgress } from '../core/progress';
+import { exKey, lessonById } from '../learn/lessons';
 import { mic } from '../audio/mic';
 import { getCtx } from '../audio/engine';
 import { noteName } from '../core/music';
@@ -55,6 +56,8 @@ export function Play({ id, query }: { id: string; query: URLSearchParams }) {
   const mode = (query.get('mode') as PlayMode) ?? s.playMode;
   const loopQ = query.get('loop');
   const sim = query.get('sim') === '1';
+  const lessonQ = query.get('lesson');
+  const needQ = parseFloat(query.get('need') ?? '0') || 0;
 
   const loop = useMemo(() => {
     if (!song || !loopQ) return null;
@@ -89,7 +92,23 @@ export function Play({ id, query }: { id: string; query: URLSearchParams }) {
         }
         recRef.current = null;
       });
-      if (sess.mode !== 'listen' && sess.score.judged > 0) recordSession(sess.summary(), sess.weak);
+      if (sess.mode !== 'listen' && sess.score.judged > 0) {
+        recordSession(sess.summary(), sess.weak);
+        // lesson progress
+        const lessonId = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('lesson');
+        const exIdx = parseInt(new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('ex') ?? '-1');
+        const need = parseFloat(new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('need') ?? '1');
+        const lesson = lessonId ? lessonById(lessonId) : undefined;
+        if (lesson && exIdx >= 0) {
+          const acc = sess.score.accuracy;
+          if (acc >= need) {
+            setCounterMax(exKey(lesson.id, exIdx), 1);
+            const all = lesson.exercises.every((e, i) => e.link || (getProgress().counters[exKey(lesson.id, i)] ?? 0) > 0);
+            if (all) setLesson(lesson.id, starsFor(acc), acc, true);
+            else setLesson(lesson.id, 0, acc, false);
+          } else setLesson(lesson.id, 0, acc, false);
+        }
+      }
       addPractice(sess.playedSeconds);
       setPhase('done');
     },
@@ -366,7 +385,7 @@ export function Play({ id, query }: { id: string; query: URLSearchParams }) {
           <Toggle on={s.clickOn} onChange={(v) => updateSettings({ clickOn: v })} label="Click" /> Click
         </label>
       </div>
-      {phase === 'done' && sess && <Results sess={sess} onRetry={() => setVersion((v) => v + 1)} onSlower={() => setQuery({ speed: String(Math.max(0.4, +(speed - 0.15).toFixed(2))) })} onLoop={(a, b) => setQuery({ loop: `${a}-${b}` })} />}
+      {phase === 'done' && sess && <Results lesson={lessonQ} need={needQ} sess={sess} onRetry={() => setVersion((v) => v + 1)} onSlower={() => setQuery({ speed: String(Math.max(0.4, +(speed - 0.15).toFixed(2))) })} onLoop={(a, b) => setQuery({ loop: `${a}-${b}` })} />}
     </div>
   );
 }
@@ -401,7 +420,7 @@ function readHud(sess: PlaySession): Hud {
 }
 
 // ---------------------------------------------------------------------------
-function Results({ sess, onRetry, onSlower, onLoop }: { sess: PlaySession; onRetry: () => void; onSlower: () => void; onLoop: (a: number, b: number) => void }) {
+function Results({ sess, onRetry, onSlower, onLoop, lesson, need }: { sess: PlaySession; onRetry: () => void; onSlower: () => void; onLoop: (a: number, b: number) => void; lesson: string | null; need: number }) {
   const sc = sess.score;
   const listen = sess.mode === 'listen';
   const stars = starsFor(sc.accuracy);
@@ -464,6 +483,11 @@ function Results({ sess, onRetry, onSlower, onLoop }: { sess: PlaySession; onRet
               <div className="row between tiny faint"><span>early</span><span>late</span></div>
             </div>
           )}
+          {lesson && (
+            <div className="tip" style={{ marginTop: 14, borderColor: sc.accuracy >= need ? 'var(--good)' : 'var(--warn)' }}>
+              {sc.accuracy >= need ? `✓ Lesson goal reached (${Math.round(need * 100)}% needed).` : `Lesson goal: ${Math.round(need * 100)}% accuracy – you got ${Math.round(sc.accuracy * 100)}%. Try again!`}
+            </div>
+          )}
           {worst.length > 0 && (
             <div className="card" style={{ marginTop: 14 }}>
               <h3>Trouble spots</h3>
@@ -479,7 +503,7 @@ function Results({ sess, onRetry, onSlower, onLoop }: { sess: PlaySession; onRet
         </>
       )}
       <div className="row" style={{ marginTop: 20, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-        <button className="btn ghost" onClick={() => navigate(`/song/${encodeURIComponent(song.id)}`)}>Back to song</button>
+        <button className="btn ghost" onClick={() => navigate(lesson ? `/learn/${lesson}` : `/song/${encodeURIComponent(song.id)}`)}>{lesson ? 'Back to lesson' : 'Back to song'}</button>
         {!listen && sc.accuracy < 0.85 && (
           <button className="btn" onClick={onSlower}>Retry slower</button>
         )}

@@ -4,11 +4,13 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
+    "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --host",
+    "start": "vite build && vite preview --host 127.0.0.1 --port 4173 --open",
+    "preview": "vite preview --host 127.0.0.1 --port 4173",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "node scripts/e2e-play.cjs"
   },
   "dependencies": {
     "@coderline/alphatab": "^1.9.0",

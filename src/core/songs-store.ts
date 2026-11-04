@@ -24,8 +24,12 @@ export async function loadUserSongs() {
   bump();
 }
 
+const temp = new Map<string, Song>();
+/** Register a generated, non-persisted song (scale drills etc.) so the player can find it by id. */
+export const registerTempSong = (s: Song) => temp.set(s.id, s);
+
 export const allSongs = (): Song[] => [...builtinSongs(), ...user];
-export const getSong = (id: string): Song | undefined => allSongs().find((s) => s.id === id);
+export const getSong = (id: string): Song | undefined => allSongs().find((s) => s.id === id) ?? temp.get(id);
 
 export async function saveUserSong(s: Song) {
   const song = { ...s, source: 'user' as const, createdAt: s.createdAt ?? Date.now() };

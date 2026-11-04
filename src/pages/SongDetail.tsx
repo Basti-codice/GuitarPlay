@@ -11,6 +11,10 @@ import { mic } from '../audio/mic';
 import { getCtx } from '../audio/engine';
 import { fmtTime } from '../ui/kit';
 import { Timeline } from '../core/timeline';
+import { useEffect } from 'react';
+import { idbGet } from '../core/storage';
+import type { SheetItem } from '../core/backup';
+import { SheetViewer } from './ImportPage';
 
 export function SongDetail({ id }: { id: string }) {
   useSongs();
@@ -22,6 +26,13 @@ export function SongDetail({ id }: { id: string }) {
   const [loopOn, setLoopOn] = useState(false);
   const [loopA, setLoopA] = useState(1);
   const [loopB, setLoopB] = useState(2);
+
+  const [sheet, setSheet] = useState<SheetItem | null>(null);
+  useEffect(() => {
+    const sid = song?.sheetIds?.[0];
+    if (sid) void idbGet<SheetItem>('sheets', sid).then((x) => setSheet(x ?? null));
+    else setSheet(null);
+  }, [song?.id, song?.sheetIds]);
 
   const tid = trackId || (song?.tracks.find((t) => t.kind === 'melody') ?? song?.tracks[0])?.id || '';
   const track = song?.tracks.find((t) => t.id === tid);
@@ -169,6 +180,13 @@ export function SongDetail({ id }: { id: string }) {
           )}
         </div>
       </div>
+
+      {sheet && (
+        <div className="card">
+          <h3>Sheet music</h3>
+          <SheetViewer blob={sheet.blob} compact />
+        </div>
+      )}
 
       {uniqueChords.length > 0 && (
         <div className="card">
