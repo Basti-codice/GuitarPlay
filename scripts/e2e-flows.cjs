@@ -17,14 +17,16 @@ const BASE = 'http://127.0.0.1:4173';
   const prog = await page.evaluate(() => JSON.parse(localStorage.getItem('guitarplay.progress.v1')));
   console.log('lesson counters:', JSON.stringify(prog.counters), 'lesson:', JSON.stringify(prog.lessons['m1-tune-warmup']), 'sessions:', prog.sessions.length);
 
-  // 2. paste ABC -> add to library -> song page
+  // 2. AI assistant import: copy prompt, paste a tab answer, adjust a setting, add to library
   await page.goto(BASE + '/#/import');
-  await page.click('text=Paste ABC / tab');
-  await page.click('button:has-text("Convert")');
-  await page.waitForSelector('text=Ready to add');
-  await page.click('text=Add to library');
+  await page.click('#copy-prompt');
+  const sample = `Title: AI Test\nArtist: Someone\nTempo: 90\nMeter: 4/4\nGrid: 1/8\nTuning: standard\nCapo: 0\nKey: C\nDifficulty: 2\nGenre: Folk\nStyle: folk\n\nChords: C | G\ne|-0---0--|-3---3--|\nB|-1---1--|-0---0--|\nG|-0---0--|-0---0--|\nD|-2---2--|-0---0--|\nA|-3---3--|-2---2--|\nE|--------|-3---3--|`;
+  await page.fill('#ai-paste', sample);
+  await page.waitForSelector('#ai-result');
+  await page.screenshot({ path: '/tmp/ai-import.png' });
+  await page.click('#ai-add');
   await page.waitForSelector('#start-btn');
-  console.log('imported song page title:', await page.textContent('h1'));
+  console.log('AI import song page title:', await page.textContent('h1'));
 
   // 3. editor: type notes + chord, save
   await page.goto(BASE + '/#/editor');

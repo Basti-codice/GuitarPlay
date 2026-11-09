@@ -11,6 +11,12 @@ export interface Settings {
   /** seconds of look-ahead shown in the waterfall */
   lookahead: number;
   leftHanded: boolean;
+  /** falling lanes (top to bottom) or side-scrolling tab view (right to left) */
+  waterfallMode: 'fall' | 'side';
+  /** larger notes with perspective growth and a highlighted next note */
+  bigNumbers: boolean;
+  /** small fretboard showing where the next notes are */
+  fretHint: boolean;
   volMaster: number;
   volMusic: number;
   volBacking: number;
@@ -45,6 +51,9 @@ export const DEFAULT_SETTINGS: Settings = {
   a4: 440,
   lookahead: 2.6,
   leftHanded: false,
+  waterfallMode: 'fall',
+  bigNumbers: true,
+  fretHint: true,
   volMaster: 0.9,
   volMusic: 0.35,
   volBacking: 0.6,

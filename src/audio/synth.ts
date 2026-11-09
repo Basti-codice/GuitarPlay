@@ -51,5 +51,5 @@ export function playPluck(midi: number, when: number, o: PlayOpts = {}) {
 export function playStrum(midis: number[], when: number, dir: 'd' | 'u' = 'd', o: PlayOpts = {}) {
   const sorted = [...midis].sort((a, b) => a - b);
   const order = dir === 'd' ? sorted : sorted.reverse();
-  order.forEach((m, i) => playPluck(m, when + i * 0.013, { gain: (o.gain ?? 0.45) * (dir === 'u' ? 0.8 : 1), ...o }));
+  return order.map((m, i) => playPluck(m, when + i * 0.013, { gain: (o.gain ?? 0.45) * (dir === 'u' ? 0.8 : 1), ...o }));
 }

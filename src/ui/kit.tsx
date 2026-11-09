@@ -131,7 +131,7 @@ export function PageHead({ title, sub, actions }: { title: string; sub?: ReactNo
 }
 
 // ---------------------------------------------------------------------------
-export function ChordDiagram({ shape, name, size = 120, dim = false }: { shape: number[]; name?: string; size?: number; dim?: boolean }) {
+export function ChordDiagram({ shape, name, size = 120, dim = false, hideMutes = false }: { shape: number[]; name?: string; size?: number; dim?: boolean; hideMutes?: boolean }) {
   const fretted = shape.filter((f) => f > 0);
   const maxF = fretted.length ? Math.max(...fretted) : 1;
   const minF = fretted.length ? Math.min(...fretted) : 1;
@@ -174,7 +174,7 @@ export function ChordDiagram({ shape, name, size = 120, dim = false }: { shape: 
       ))}
       {barre && <rect x={sx(barre.from) - 4} y={y0 + (barre.fret - base) * fh + fh / 2 - 4.5} width={sx(barre.to) - sx(barre.from) + 8} height={9} rx={4.5} fill="#ffb347" />}
       {shape.map((f, s) => {
-        if (f < 0) return <text key={s} x={sx(s)} y={y0 - 7} textAnchor="middle" fontSize={10} fill="#ff5d73" fontWeight={800}>×</text>;
+        if (f < 0) return hideMutes ? null : <text key={s} x={sx(s)} y={y0 - 7} textAnchor="middle" fontSize={10} fill="#ff5d73" fontWeight={800}>×</text>;
         if (f === 0) return <circle key={s} cx={sx(s)} cy={y0 - 9} r={3.2} fill="none" stroke="#9aa1b8" strokeWidth={1.4} />;
         if (barre && f === barre.fret && s >= barre.from && s <= barre.to) return null;
         return <circle key={s} cx={sx(s)} cy={y0 + (f - base) * fh + fh / 2} r={5.6} fill="#ffb347" />;

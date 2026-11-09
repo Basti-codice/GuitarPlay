@@ -17,6 +17,7 @@ Entwickeln: `npm install` · `npm run dev` · Tests: `npm test` · Produktions-B
 | Bereich | Inhalt |
 |---|---|
 | **Play (Wasserfall)** | 6 Saiten-Lanes mit Bundzahlen, Akkord-Balken mit Namen, Anschlagrichtung ↓↑, Hammer-on/Pull-off-Markierung, Treffer-Feedback (Perfect/Good/OK/Wrong/Miss), Combo & Multiplikator, Score, Sterne, Timing-Histogramm („du bist 30 ms zu spät“), Problemtakte mit Ein-Klick-Loop |
+| **Ansichten** | *Falling* (Noten fallen) oder *Side-scroll* (Noten laufen wie in einer Tab von rechts nach links) · große Zahlen, die beim Näherkommen wachsen · nächste Note weiß umrandet · „Next“-Griffbild für die nächsten zwei Noten |
 | **Modi** | Real-time · *Wait for me* (stoppt bis du richtig spielst) · *Watch & listen* · Tempo 40–125 % · Loop-Abschnitte · Count-in · Metronom |
 | **Begleitung** | Synthetisierte Backing-Band (Drums, Bass, Pad je nach Stil/Takt) und Referenz-Gitarre – direkt aus den Akkorden des Songs erzeugt |
 | **Songs** | 78 Stücke (157 spielbare Spuren): Melodien (gemeinfrei), Akkord-Songs, Fingerpicking-/Travis-Arrangements, Blues-/Rock-/Folk-Progressionen, Technik-Übungen. Pro Stück bis zu drei Spuren: Melody · Chords (Strumming) · Picking |
@@ -26,8 +27,8 @@ Entwickeln: `npm install` · `npm run dev` · Tests: `npm test` · Produktions-B
 | **Fretboard** | Skalen & Modi auf dem Griffbrett, Skalen-Übungen im Wasserfall, Noten-Finder-Spiel |
 | **Ear training** | Intervalle, Notennamen, „Spiel die Phrase nach“ |
 | **Tuner · Metronom · Recorder** | Stimmgerät (8 Stimmungen, A4 einstellbar), Metronom mit Speed-Trainer & Tap-Tempo, Aufnahme mit Wiedergabe |
-| **Import** | Guitar Pro (.gp3–.gp, .gpx), MusicXML, MIDI, ABC, Text-Tabs → Tab-Editor. Foto-Archiv für Notenblätter (Anzeige neben dem Editor) |
-| **Editor** | Tab-Raster (1/4, 1/8, 1/16) oder ABC-Text, Akkordnamen, Stimmungen, Capo, Vorhören |
+| **Import** | **KI-Assistent**: Prompt kopieren (mit deinen bekannten Einstellungen: Tempo, Takt, Stimmung, Capo …), Foto + Prompt an beliebige KI (ChatGPT/Claude/Gemini) geben, Antwort einfügen → Vorschau mit **nachträglich änderbaren Einstellungen**, Warnungen und Anhören. Außerdem Guitar Pro (.gp3–.gp, .gpx), MusicXML, MIDI, ABC, Text-Tabs und ein Foto-Archiv |
+| **Editor** | Tab in Zeilen (Systemen) mit fester Zellgröße – auch lange Stücke bleiben lesbar · Takt einfügen/duplizieren/löschen/kopieren, Bereich anhängen · Undo/Redo · Text-Modus im GuitarPlay-Tab-Format (Export/Import) · ABC-Modus · Akkordnamen erzeugen Strumming-/Picking-Spuren |
 | **Progress** | XP/Level, Streak, Tagesziel, Übungskalender, Genauigkeits-Trend, Schwachstellen-Griffbrett, 19 Achievements |
 | **Menü-Musik** | Ruhige, generative Ambient-Musik (pausiert automatisch wo das Mikrofon aktiv ist) |
 
@@ -48,6 +49,9 @@ Statt Töne blind zu „transkribieren“ (bei Akkorden unzuverlässig) prüft d
 ## Songs & Rechtliches
 
 Die eingebauten Stücke sind **gemeinfrei** (Volkslieder, Klassik) bzw. eigene Übungen und Progressionen; die Melodien wurden aus dem Gedächtnis als Noten aufgeschrieben und die Griffe automatisch gesetzt – bei Abweichungen im **Editor** korrigieren. Urheberrechtlich geschützte Tabs (aktuelle Pop-/Rocksongs) werden bewusst nicht mitgeliefert und nicht aus dem Netz gezogen; eigene Dateien (Guitar Pro, MusicXML, MIDI, ABC) importierst du unter *Import & Create*.
+
+### Das GuitarPlay-Tab-Format
+Kopfzeilen (`Title`, `Artist`, `Tempo`, `Meter`, `Grid`, `Tuning`, `Capo`, `Key`, `Difficulty`, `Genre`, `Style`, optional `Spacing`), darüber je System eine `Chords:`-Zeile (ein Eintrag pro Takt) und sechs Tab-Zeilen `e B G D A E`. Eine Zeichenspalte = ein Grid-Schritt; Taktstriche müssen auf allen Zeilen übereinanderliegen. Der Parser ist tolerant (Markdown-Reste, falsche Taktbreiten, fehlende Kopfzeilen → Warnung statt Abbruch) und das Format lässt sich aus dem Editor exportieren. Die vollständige Spezifikation steckt im Prompt (`src/songs/import/prompt.ts`).
 
 ### Notenblatt-Foto → Tabs
 Echte Notenerkennung (OMR) ist im Browser nicht zuverlässig möglich. Du kannst Fotos im Archiv ablegen und beim Abtippen im Editor daneben anzeigen, oder (optional, eigener Anthropic-API-Key unter *Settings*) Claude das Foto in ABC/Tab umwandeln lassen. Das Ergebnis immer prüfen.

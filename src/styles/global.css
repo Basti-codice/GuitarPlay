@@ -181,7 +181,10 @@ kbd { background: var(--card3); border: 1px solid var(--line2); border-bottom-wi
 .chordbox { position: absolute; right: 18px; top: 16px; display: flex; gap: 12px; z-index: 2; align-items: flex-start; }
 .chordbox .cb { background: rgba(23, 25, 35, 0.9); border: 1px solid var(--line2); border-radius: 14px; padding: 8px 10px 4px; text-align: center; backdrop-filter: blur(6px); }
 .chordbox .cb.next { opacity: 0.6; transform: scale(0.88); transform-origin: top right; }
-.detect { position: absolute; left: 18px; top: 16px; z-index: 2; background: rgba(23, 25, 35, 0.9); border: 1px solid var(--line2); border-radius: 14px; padding: 8px 14px; min-width: 110px; backdrop-filter: blur(6px); }
+.leftstack { position: absolute; left: 14px; top: 16px; z-index: 2; display: flex; flex-direction: column; gap: 10px; max-width: 270px; }
+.leftstack.side { flex-direction: row; max-width: none; align-items: flex-start; }
+.hintbox { background: rgba(23, 25, 35, 0.9); border: 1px solid var(--line2); border-radius: 14px; padding: 6px 10px 4px; backdrop-filter: blur(6px); }
+.detect {  background: rgba(23, 25, 35, 0.9); border: 1px solid var(--line2); border-radius: 14px; padding: 8px 14px; min-width: 110px; backdrop-filter: blur(6px); }
 .detect .note { font-size: 30px; font-weight: 800; line-height: 1; }
 .big-center { position: absolute; inset: 0; display: grid; place-items: center; z-index: 4; pointer-events: none; }
 .big-center .num { font-size: 120px; font-weight: 900; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 10px 40px rgba(255, 94, 98, 0.5)); animation: pulse 0.9s; }
@@ -207,15 +210,18 @@ kbd { background: var(--card3); border: 1px solid var(--line2); border-bottom-wi
 .drop { border: 2px dashed var(--line2); border-radius: 16px; padding: 36px; text-align: center; color: var(--muted); transition: all 0.15s; cursor: pointer; }
 .drop.over, .drop:hover { border-color: var(--accent); background: rgba(255, 179, 71, 0.05); color: var(--text); }
 
-/* tab editor */
-.tabgrid { overflow-x: auto; background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
-.tabgrid table { border-collapse: collapse; font-family: var(--mono); }
-.tabgrid td { width: 34px; height: 30px; text-align: center; border-bottom: 1px solid #2c3042; cursor: pointer; font-size: 14px; user-select: none; }
-.tabgrid td.barline { border-left: 2px solid #4a4f66; }
-.tabgrid td.sel { background: rgba(255, 179, 71, 0.3); outline: 2px solid var(--accent); outline-offset: -2px; }
-.tabgrid td.has { color: #fff; font-weight: 800; }
-.tabgrid td.lbl { width: 28px; color: var(--faint); position: sticky; left: 0; background: var(--bg2); }
-.tabgrid td.chordcell { height: 26px; font-size: 11px; color: var(--accent); border-bottom: 0; font-family: var(--font); font-weight: 700; }
+/* tab editor: systems of fixed-width cells that wrap like printed tab */
+.tabsys { background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px 10px; margin-bottom: 10px; overflow-x: auto; }
+.tabsys table { border-collapse: collapse; table-layout: fixed; font-family: var(--mono); }
+.tabsys td { height: 28px; text-align: center; border-bottom: 1px solid #2c3042; cursor: pointer; font-size: 14px; user-select: none; padding: 0; overflow: hidden; color: #596079; }
+.tabsys td.barline { border-left: 2px solid #4a4f66; }
+.tabsys td.inbar { background: rgba(255, 255, 255, 0.025); }
+.tabsys td.sel { background: rgba(255, 179, 71, 0.3); outline: 2px solid var(--accent); outline-offset: -2px; color: #fff; }
+.tabsys td.has { color: #fff; font-weight: 800; }
+.tabsys td.lbl { color: var(--faint); cursor: default; border-bottom-color: transparent; }
+.tabsys td.chordcell { height: 20px; font-size: 11px; color: var(--accent); border-bottom: 0; font-family: var(--font); font-weight: 700; text-align: left; padding-left: 2px; white-space: nowrap; overflow: visible; }
+.tabsys td.barnum { height: 20px; font-size: 11px; color: var(--faint); text-align: left; padding-left: 5px; border-bottom: 0; font-family: var(--font); font-weight: 700; }
+.tabsys td.barnum.barsel { color: var(--accent); }
 
 @media (max-width: 1100px) {
   .grid.c4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }

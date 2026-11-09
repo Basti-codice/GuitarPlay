@@ -31,9 +31,11 @@ interface Hud {
   cents: number;
   chord: string | null;
   nextChord: string | null;
+  next: number[] | null;
+  next2: number[] | null;
 }
 
-const emptyHud: Hud = { score: 0, combo: 0, acc: 1, mult: 1, progress: 0, count: null, holding: false, state: 'ready', detected: '', cents: 0, chord: null, nextChord: null };
+const emptyHud: Hud = { score: 0, combo: 0, acc: 1, mult: 1, progress: 0, count: null, holding: false, state: 'ready', detected: '', cents: 0, chord: null, nextChord: null, next: null, next2: null };
 
 export function Play({ id, query }: { id: string; query: URLSearchParams }) {
   useSongs();
@@ -130,7 +132,8 @@ export function Play({ id, query }: { id: string; query: URLSearchParams }) {
       const sess = sessionRef.current;
       if (sess) {
         sess.tick();
-        wf.draw(sess, getSettings().lookahead, getSettings().leftHanded);
+        const st = getSettings();
+        wf.draw(sess, st.lookahead, st.leftHanded, { mode: st.waterfallMode, big: st.bigNumbers });
         if (t - lastHud > 66) {
           lastHud = t;
           setHud(readHud(sess));
@@ -252,13 +255,24 @@ export function Play({ id, query }: { id: string; query: URLSearchParams }) {
       </div>
       <div className="play-stage" ref={stageRef}>
         <canvas ref={canvasRef} id="waterfall" />
-        {mode !== 'listen' && (
-          <div className="detect">
-            <div className="tiny faint" style={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}>You play</div>
-            <div className="note" style={{ color: hud.detected ? 'var(--text)' : 'var(--faint)' }}>{hud.detected || '–'}</div>
-            <div className="tiny muted" style={{ height: 14 }}>{hud.detected ? `${hud.cents > 0 ? '+' : ''}${hud.cents} cents` : ''}</div>
-          </div>
-        )}
+        <div className={`leftstack ${s.waterfallMode === 'side' ? 'side' : ''}`}>
+          {mode !== 'listen' && (
+            <div className="detect">
+              <div className="tiny faint" style={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}>You play</div>
+              <div className="note" style={{ color: hud.detected ? 'var(--text)' : 'var(--faint)' }}>{hud.detected || '–'}</div>
+              <div className="tiny muted" style={{ height: 14 }}>{hud.detected ? `${hud.cents > 0 ? '+' : ''}${hud.cents} cents` : ''}</div>
+            </div>
+          )}
+          {s.fretHint && hud.next && phase === 'playing' && (
+            <div className="hintbox">
+              <div className="tiny faint" style={{ textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'center' }}>Next</div>
+              <div className="row" style={{ gap: 4, alignItems: 'flex-start' }}>
+                <ChordDiagram shape={hud.next} size={84} hideMutes />
+                {hud.next2 && <ChordDiagram shape={hud.next2} size={64} hideMutes dim />}
+              </div>
+            </div>
+          )}
+        </div>
         {s.showChordBox && (chordInfoCur || chordInfoNext) && (
           <div className="chordbox">
             {chordInfoCur && (
@@ -371,6 +385,13 @@ export function Play({ id, query }: { id: string; query: URLSearchParams }) {
           </button>
         )}
         <span className="grow" />
+        <Seg value={s.waterfallMode} onChange={(v) => updateSettings({ waterfallMode: v })} options={[{ v: 'fall', label: 'Falling' }, { v: 'side', label: 'Side-scroll' }]} />
+        <label className="row small muted" style={{ gap: 8 }}>
+          <Toggle on={s.bigNumbers} onChange={(v) => updateSettings({ bigNumbers: v })} label="Large numbers" /> Large
+        </label>
+        <label className="row small muted" style={{ gap: 8 }}>
+          <Toggle on={s.fretHint} onChange={(v) => updateSettings({ fretHint: v })} label="Fingering hint" /> Hint
+        </label>
         <label className="row small muted" style={{ gap: 8 }}>
           Note speed
           <input type="range" min={1.4} max={4.5} step={0.1} style={{ width: 110 }} value={6 - s.lookahead} onChange={(e) => updateSettings({ lookahead: 6 - parseFloat(e.target.value) })} />
@@ -403,6 +424,27 @@ function readHud(sess: PlaySession): Hud {
   let count: number | null = null;
   if (sess.state === 'playing' && toStart > 0.05 && beat < pickup && sess.mode !== 'listen') count = Math.ceil(toStart / sess.beatStep - 0.05);
   const frac = (beat / total) as number;
+  // where to put the fingers for the next two events (single-note / picking tracks)
+  let next: number[] | null = null;
+  let next2: number[] | null = null;
+  if (sess.track.kind !== 'chords') {
+    const now = sess.playTime();
+    const evs = sess.track.events;
+    let found = 0;
+    for (let i = 0; i < evs.length && found < 2; i++) {
+      if (sess.results.has(i) || sess.tl.toSec(evs[i].beat) / sess.speed < now - 0.15) continue;
+      const shape = [-1, -1, -1, -1, -1, -1];
+      let any = false;
+      for (const n of evs[i].notes) if (!n.dead) {
+        shape[n.string] = n.fret;
+        any = true;
+      }
+      if (!any) continue;
+      if (found === 0) next = shape;
+      else next2 = shape;
+      found++;
+    }
+  }
   return {
     score: sc.score,
     combo: sc.combo,
@@ -416,6 +458,8 @@ function readHud(sess: PlaySession): Hud {
     cents: det ? Math.round((det.midi - Math.round(det.midi)) * 100) : 0,
     chord: cur,
     nextChord: nextMark?.name ?? null,
+    next,
+    next2,
   };
 }
 

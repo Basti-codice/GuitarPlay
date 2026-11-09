@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Modal, PageHead, Seg } from '../ui/kit';
 import { Icon } from '../ui/Icon';
-import { importAbcText, importFile, parseAsciiTab, type Imported } from '../songs/import';
+import { importFile, type Imported } from '../songs/import';
+import { AiImport } from './AiImport';
 import { saveUserSong, useSongs } from '../core/songs-store';
 import { bump } from '../core/progress';
 import { navigate } from '../core/router';
@@ -12,7 +13,7 @@ import { useSettings } from '../core/settings';
 import { transcribeSheet } from '../songs/import/transcribe';
 
 export function ImportPage() {
-  const [tab, setTab] = useState<'file' | 'paste' | 'sheets'>('file');
+  const [tab, setTab] = useState<'ai' | 'file' | 'sheets'>('ai');
   return (
     <div className="page narrow">
       <PageHead title="Import & Create" sub="Bring your own songs: Guitar Pro tabs, MusicXML, MIDI, ABC, text tabs or photos of sheet music – or write one from scratch." />
@@ -20,12 +21,12 @@ export function ImportPage() {
         <button className="btn primary" onClick={() => navigate('/editor')}><Icon name="editor" size={16} /> New song in editor</button>
       </div>
       <div className="tabs">
+        <button className={tab === 'ai' ? 'on' : ''} onClick={() => setTab('ai')}>Photo / text via AI</button>
         <button className={tab === 'file' ? 'on' : ''} onClick={() => setTab('file')}>Import a file</button>
-        <button className={tab === 'paste' ? 'on' : ''} onClick={() => setTab('paste')}>Paste ABC / tab</button>
         <button className={tab === 'sheets' ? 'on' : ''} onClick={() => setTab('sheets')}>Photos & sheets</button>
       </div>
+      {tab === 'ai' && <AiImport />}
       {tab === 'file' && <FileImport />}
-      {tab === 'paste' && <PasteImport />}
       {tab === 'sheets' && <Sheets />}
     </div>
   );
@@ -104,52 +105,6 @@ function FileImport() {
   );
 }
 
-function PasteImport() {
-  const [text, setText] = useState(`X:1
-T:My Tune
-M:4/4
-L:1/4
-Q:1/4=100
-K:G
-"G"G A B d | "C"e2 d2 | "D"B A G A | "G"G4 |]`);
-  const [bpm, setBpm] = useState(90);
-  const [title, setTitle] = useState('Pasted tab');
-  const [imp, setImp] = useState<Imported | null>(null);
-  const [err, setErr] = useState('');
-  const isAbc = /^\s*[XTKM]:/m.test(text);
-
-  const parse = () => {
-    setErr('');
-    try {
-      setImp(isAbc ? importAbcText(text) : { song: parseAsciiTab(text, { bpm, title }), notes: [] });
-    } catch (e) {
-      setErr((e as Error).message);
-      setImp(null);
-    }
-  };
-  return (
-    <>
-      <div className="card">
-        <p className="small">
-          Paste <b>ABC notation</b> (with <code>"C"</code> chord symbols for strumming tracks) or a <b>text tab</b> (six lines like <code>e|--0--3--|</code>). ABC detected: <b>{isAbc ? 'yes' : 'no – using tab parser'}</b>
-        </p>
-        <textarea rows={12} value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} aria-label="Notation text" />
-        {!isAbc && (
-          <div className="grid c2" style={{ marginTop: 10 }}>
-            <label className="field">Title<input type="text" value={title} onChange={(e) => setTitle(e.target.value)} /></label>
-            <label className="field">Tempo (BPM)<input type="number" value={bpm} min={30} max={240} onChange={(e) => setBpm(parseInt(e.target.value) || 90)} /></label>
-          </div>
-        )}
-        <div className="row" style={{ marginTop: 12, justifyContent: 'flex-end' }}>
-          <button className="btn primary" onClick={parse}>Convert</button>
-        </div>
-      </div>
-      {err && <div className="tip" style={{ borderColor: 'var(--bad)' }}>{err}</div>}
-      {imp && <Preview imp={imp} onCancel={() => setImp(null)} onSave={async (s) => { await saveUserSong(s); bump('created'); navigate(`/song/${encodeURIComponent(s.id)}`); }} />}
-    </>
-  );
-}
-
 function Sheets() {
   const s = useSettings();
   useSongs();
@@ -173,7 +128,7 @@ function Sheets() {
     setBusy(it.id);
     try {
       const r = await transcribeSheet(it.blob, s.apiKey);
-      lsSet('guitarplay.draft', { kind: r.kind, text: r.text, sheetId: it.id, title: it.name });
+      lsSet('guitarplay.draft', { kind: r.kind, text: r.text, sheetId: it.id, title: it.name, overrides: {} });
       toast('Transcription ready – please review it in the editor');
       navigate('/editor/draft');
     } catch (e) {

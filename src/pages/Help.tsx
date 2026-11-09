@@ -9,6 +9,8 @@ const FAQ: { q: string; a: string }[] = [
   { q: 'Can I play with an electric guitar or an audio interface?', a: 'Yes – pick the interface under Settings → Microphone. A clean (no distortion) signal works best. Interfaces give much lower latency than a laptop microphone.' },
   { q: 'Why does the browser need microphone access?', a: 'The audio is analysed live inside the browser to judge your playing. Nothing is recorded or uploaded unless you use the Recorder, and recordings stay on your computer.' },
   { q: 'Where are my songs, recordings and progress stored?', a: 'In this browser (IndexedDB and local storage). Use Settings → Export backup to keep a copy or move to another computer.' },
+  { q: 'The AI’s tab does not import correctly.', a: 'Import & Create → “Photo / text via AI”: fill in everything you already know in step 1 (tempo, meter, tuning, capo …) so it is part of the prompt. After pasting the answer, wrong settings can be changed directly in the result card – the text is re-read at once. If bars are reported as too wide or narrow, the Grid/Meter setting is usually off by one step. If the AI’s text is badly broken, copy the “please fix it” message and send it back to the AI.' },
+  { q: 'The falling numbers are hard to read.', a: 'In the play screen switch to “Side-scroll” (notes travel along the six strings like a tab), keep “Large” on, and use the “Next” fingering diagram on the left. A lower note speed also helps.' },
   { q: 'How do I add songs?', a: 'Songs → Add song, or Import & Create: Guitar Pro / MusicXML / MIDI / ABC / text tabs, or write one in the Editor. The Jam builder creates chord songs in any key.' },
 ];
 

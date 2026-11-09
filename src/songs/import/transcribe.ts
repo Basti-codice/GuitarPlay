@@ -1,8 +1,5 @@
 /** Optional: ask Claude (with the user's own API key) to transcribe a photo of sheet music. */
-const PROMPT = `You are transcribing a photo of guitar music for a practice app.
-- If the image shows standard music notation (a lead sheet or melody), output it as ABC notation: X:1, T: (title), M: (meter), L: (unit length), Q: (tempo as 1/4=BPM, guess if absent), K: (key), then the music. Put printed chord symbols in double quotes before the note they belong to. Write the melody exactly as printed, bar by bar, and make every bar add up to the meter.
-- If the image shows guitar tablature, output ASCII tab instead: six lines per system labelled e| B| G| D| A| E|, with fret numbers in columns, left to right in time order.
-Return ONLY the notation inside a single fenced code block. No commentary.`;
+import { buildAiPrompt, type KnownSettings } from './prompt';
 
 export async function blobToBase64(b: Blob): Promise<string> {
   return new Promise((res, rej) => {
@@ -13,7 +10,7 @@ export async function blobToBase64(b: Blob): Promise<string> {
   });
 }
 
-export async function transcribeSheet(blob: Blob, apiKey: string): Promise<{ kind: 'abc' | 'tab'; text: string }> {
+export async function transcribeSheet(blob: Blob, apiKey: string, known: KnownSettings = {}): Promise<{ kind: 'abc' | 'tab'; text: string }> {
   const media = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(blob.type) ? blob.type : 'image/jpeg';
   const resp = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -26,7 +23,7 @@ export async function transcribeSheet(blob: Blob, apiKey: string): Promise<{ kin
     body: JSON.stringify({
       model: 'claude-sonnet-5-5',
       max_tokens: 8000,
-      messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: media, data: await blobToBase64(blob) } }, { type: 'text', text: PROMPT }] }],
+      messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: media, data: await blobToBase64(blob) } }, { type: 'text', text: buildAiPrompt(known, true) }] }],
     }),
   });
   if (!resp.ok) {

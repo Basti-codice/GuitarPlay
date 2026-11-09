@@ -104,7 +104,16 @@ export function SettingsPage() {
         <Setting label="Waterfall speed" desc="How many seconds of music are visible above the hit line.">
           <Slider value={6 - s.lookahead} min={1.4} max={4.5} step={0.1} onChange={(v) => updateSettings({ lookahead: 6 - v })} width={200} />
         </Setting>
-        <Setting label="Left-handed layout" desc="Mirrors the six lanes.">
+        <Setting label="View" desc="Falling: notes drop towards the line. Side-scroll: notes travel from right to left along the six strings, like reading a tab.">
+          <Seg value={s.waterfallMode} onChange={(v) => updateSettings({ waterfallMode: v })} options={[{ v: 'fall', label: 'Falling' }, { v: 'side', label: 'Side-scroll' }]} />
+        </Setting>
+        <Setting label="Large notes" desc="Bigger fret numbers that grow as they approach, and a white outline on the next note.">
+          <Toggle on={s.bigNumbers} onChange={(v) => updateSettings({ bigNumbers: v })} label="Large notes" />
+        </Setting>
+        <Setting label="Fingering hint" desc="A small diagram shows where to put your fingers for the next two notes.">
+          <Toggle on={s.fretHint} onChange={(v) => updateSettings({ fretHint: v })} label="Fingering hint" />
+        </Setting>
+        <Setting label="Left-handed layout" desc="Mirrors the six lanes (falling view).">
           <Toggle on={s.leftHanded} onChange={(v) => updateSettings({ leftHanded: v })} label="Left-handed" />
         </Setting>
         <Setting label="Chord diagrams while playing">

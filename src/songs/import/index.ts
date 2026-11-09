@@ -4,6 +4,7 @@ import { parseAbc } from '../abc';
 import { importWithAlphaTab } from './gp';
 import { midiToSong } from './midi';
 import { parseAsciiTab } from './asciitab';
+import { parseTabText } from './tabtext';
 
 export interface Imported {
   song: Song;
@@ -21,7 +22,10 @@ export async function importFile(file: File): Promise<Imported> {
   if (['mid', 'midi'].includes(ext)) return { song: midiToSong(bytes, name), notes: ['MIDI converted with automatic fretting – check the result in the editor.'] };
   const text = new TextDecoder().decode(bytes);
   if (ext === 'abc' || /^\s*X:\s*\d+/m.test(text)) return importAbcText(text);
-  if (['txt', 'tab'].includes(ext)) return { song: parseAsciiTab(text, { title: name.replace(/\.[^.]+$/, '') }), notes: [] };
+  if (['txt', 'tab'].includes(ext)) {
+    const r = parseTabText(text, { title: name.replace(/\.[^.]+$/, '') });
+    return { song: r.song, notes: r.warnings };
+  }
   throw new Error(`Unsupported file type “.${ext}”. Use Guitar Pro (.gp3-.gp), MusicXML, MIDI, ABC or a text tab.`);
 }
 
@@ -36,4 +40,4 @@ export function importAbcText(text: string): Imported {
   return { song, notes: tune.warnings };
 }
 
-export { parseAsciiTab };
+export { parseAsciiTab, parseTabText };
